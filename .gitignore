@@ -399,6 +399,12 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 .idea/
+.config/
 
 # Python cache
 __pycache__/
+
+# SQLite
+App.db
+App.db-shm
+App.db-wal
