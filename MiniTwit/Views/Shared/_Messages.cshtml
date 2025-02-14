@@ -1,0 +1,21 @@
+@model ICollection<MessageViewModel>
+<ul class="messages">
+    @foreach (var message in Model)
+    {
+        <li>
+            <img src="{{ message.email|gravatar(size=48) }}">
+            <p>
+                <strong>
+                    <a asp-controller="Timeline" asp-action="UserTimeline"
+                       asp-route-username="@message.Username">@message.Username</a>
+                </strong>
+                @message.Text
+                <small>&mdash; @message.PublishDate</small>
+            </p>
+        </li>
+    }
+    @if (Model.Count == 0)
+    {
+        <li><em>There's no message so far.</em></li>
+    }
+</ul>

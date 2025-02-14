@@ -1,0 +1,32 @@
+@inject SignInManager<AppUser> SignInManager
+@inject UserManager<AppUser> UserManager
+@model TimelineViewModel
+<h2>@ViewData["Title"]</h2>
+@{
+    var user = await UserManager.GetUserAsync(User);
+    if (user != null)
+    {
+        if (Model.IsUserTimeline)
+        {
+            <div class="followstatus">
+                @if (user.Id == Model.UserId)
+                {
+                    <text>This is you!</text>
+                }
+                else if (Model.FollowsUser)
+                {
+                    <text>You are currently following this user.</text>
+                    <a class="unfollow" asp-action="UnfollowUser" asp-route-username="@Model.Username">Unfollow user</a>
+                    <text>.</text>
+                }
+                else
+                {
+                    <text>You are not yet following this user.</text>
+                    <a class="follow" asp-action="FollowUser" asp-route-username="@Model.Username">Follow user</a>
+                    <text>.</text>
+                }
+            </div>
+        }
+    }
+}
+@await Html.PartialAsync("_Messages", Model.Messages)
