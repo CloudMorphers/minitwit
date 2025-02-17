@@ -30,7 +30,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 # configuration
-DATABASE = "/tmp/minitwit.db"
+DATABASE = "minitwit.db"
 PER_PAGE = 30
 DEBUG = True
 SECRET_KEY = "development key"
@@ -300,4 +300,4 @@ app.debug = DEBUG
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", port=5001)
