@@ -408,3 +408,7 @@ __pycache__/
 App.db
 App.db-shm
 App.db-wal
+
+# Vagrant & db_ip.txt
+db_ip.txt
+.vagrant
