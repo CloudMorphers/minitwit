@@ -10,4 +10,6 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
         : base(options)
     {
     }
+
+    public DbSet<Message> Messages => Set<Message>();
 }
