@@ -64,7 +64,7 @@ namespace MiniTwit.Controllers
             var existingUser = await _userManager.FindByNameAsync(model.Username);
             if (existingUser != null)
             {
-                TempData["Error"] = "The username is already taken.";
+                TempData["Error"] = "The username is already taken";
                 return View(model);
             }
 
@@ -74,12 +74,12 @@ namespace MiniTwit.Controllers
 
             if (result.Succeeded)
             {
-                TempData["Success"] = "You were successfully registered and can now log in.";
+                TempData["Success"] = "You were successfully registered and can now log in";
                 return RedirectToAction("Login");
             }
 
             // If registration failed for any reason
-            TempData["Error"] = "An error occurred while registering your account.";
+            TempData["Error"] = "An error occurred while registering your account";
             return View(model);
         }
 
@@ -97,30 +97,31 @@ namespace MiniTwit.Controllers
         {
             if (string.IsNullOrEmpty(model.Username))
             {
-                TempData["Error"] = "Username is invalid.";
+                TempData["Error"] = "Username is invalid";
                 return View(model);  // Return the view with username error
             }
 
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
-                TempData["Error"] = "Username is invalid."; // Username does not exist
+                TempData["Error"] = "Username is invalid"; // Username does not exist
                 return View(model);
             }
 
             if (string.IsNullOrEmpty(model.Password))
             {
-                TempData["Error"] = "Password is invalid.";  // Password is empty
+                TempData["Error"] = "Password is invalid";  // Password is empty
                 return View(model);
             }
 
             var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, false, false);
             if (!result.Succeeded)
             {
-                TempData["Error"] = "Invalid password.";  // If password doesn't match
+                TempData["Error"] = "Invalid password";  // If password doesn't match
                 return View(model);
             }
 
+            TempData["Success"] = "You were logged in";
             return RedirectToAction("Index", "Home");
         }
 

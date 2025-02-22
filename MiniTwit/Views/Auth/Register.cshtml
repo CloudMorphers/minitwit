@@ -2,15 +2,7 @@
 
 <h2>Sign Up</h2>
 
-@if (TempData["Error"] != null)
-{
-    <div class="error"><strong>Error:</strong> @TempData["Error"]</div>
-}
-
-@if (TempData["Success"] != null)
-{
-    <div class="success"><strong>Success:</strong> @TempData["Success"]</div>
-}
+@await Html.PartialAsync("_Notification")
 
 <form method="post">
     <dl>
