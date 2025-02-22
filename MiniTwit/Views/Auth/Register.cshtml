@@ -1,23 +1,33 @@
 @model MiniTwit.Models.Auth.RegisterViewModel
 
-<h2>Register</h2>
+<h2>Sign Up</h2>
+
+@if (TempData["Error"] != null)
+{
+    <div class="error"><strong>Error:</strong> @TempData["Error"]</div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="success"><strong>Success:</strong> @TempData["Success"]</div>
+}
 
 <form method="post">
-    <div>
-        <label for="Username">Username</label>
-        <input type="text" asp-for="Username" />
+    <dl>
+        <dt>Username:</dt>
+        <dd><input type="text" asp-for="Username" /></dd>
+
+        <dt>E-Mail:</dt>
+        <dd><input type="text" asp-for="Email" /></dd>
+
+        <dt>Password:</dt>
+        <dd><input type="password" asp-for="Password" /></dd>
+
+        <dt>Password <small>(repeat)</small>:</dt>
+        <dd><input type="password" asp-for="Password2" /></dd>
+    </dl>
+
+    <div class="actions">
+        <input type="submit" value="Sign Up">
     </div>
-    <div>
-        <label for="Email">Email</label>
-        <input type="email" asp-for="Email" />
-    </div>
-    <div>
-        <label for="Password">Password</label>
-        <input type="password" asp-for="Password" />
-    </div>
-    <div>
-        <label for="ConfirmPassword">Confirm Password</label>
-        <input type="password" asp-for="ConfirmPassword" />
-    </div>
-    <button type="submit">Register</button>
 </form>

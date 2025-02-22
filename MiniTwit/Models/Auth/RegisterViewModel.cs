@@ -8,6 +8,6 @@ namespace MiniTwit.Models.Auth
 
         public string Password { get; set; }
 
-        public string ConfirmPassword { get; set; }
+        public string Password2 { get; set; }
     }
 }
