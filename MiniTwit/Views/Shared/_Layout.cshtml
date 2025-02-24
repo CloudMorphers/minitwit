@@ -21,15 +21,15 @@
                 <text>|</text>
                 <a asp-action="PublicTimeline">public timeline</a>
                 <text>|</text>
-                <a asp-action="Logout">sign out @username</a>
+                <a asp-controller="Auth" asp-action="Logout">sign out [@username]</a>
             }
             else
             {
                 <a asp-action="PublicTimeline">public timeline</a>
                 <text>|</text>
-                <a asp-action="Register">sign up</a>
+                <a asp-controller="Auth" asp-action="Register">sign up</a>
                 <text>|</text>
-                <a asp-action="Login">sign in</a>
+                <a asp-controller="Auth" asp-action="Login">sign in</a>
             }
         </div>
         <div class="body">
