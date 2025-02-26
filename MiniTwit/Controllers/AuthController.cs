@@ -24,8 +24,6 @@ namespace MiniTwit.Controllers
             return View(); // Ensure "Views/Auth/Register.cshtml" exists
         }
 
-        // my own comment
-
         // POST: /register (Handle form submission)
         [HttpPost("/register")]
         [ValidateAntiForgeryToken]
