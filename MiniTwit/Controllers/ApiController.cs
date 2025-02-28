@@ -83,7 +83,7 @@ namespace MiniTwit.Controllers
                 return BadRequest(new { status = 400, error_msg = "You have to enter a valid email address" });
             }
 
-            if (string.IsNullOrEmpty(input.Password))
+            if (string.IsNullOrEmpty(input.Pwd))
             {
                 return BadRequest(new { status = 400, error_msg = "You have to enter a password" });
             }
@@ -98,7 +98,7 @@ namespace MiniTwit.Controllers
             {
                 UserName = input.Username,
                 Email = input.Email,
-                PasswordHash = new PasswordHasher<AppUser>().HashPassword(null, input.Password)
+                PasswordHash = new PasswordHasher<AppUser>().HashPassword(null, input.Pwd)
             };
 
             _context.Users.Add(user);
