@@ -163,8 +163,8 @@ namespace MiniTwit.Controllers
                     .Take(no)
                     .Select(m => new MessageViewModel
                     {
-                        Email = _context.Users.Find(m.AuthorId).Email,
-                        Username = _context.Users.Find(m.AuthorId).UserName,
+                        Email = _context.Users.Where(u => u.Id == m.AuthorId).Select(u => u.Email).FirstOrDefault(),
+                        Username = _context.Users.Where(u => u.Id == m.AuthorId).Select(u => u.UserName).FirstOrDefault(),
                         Text = m.Text,
                         PublishDate = DateTimeOffset.FromUnixTimeSeconds(m.PubDate).UtcDateTime
                     })
