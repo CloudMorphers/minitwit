@@ -408,3 +408,6 @@ __pycache__/
 App.db
 App.db-shm
 App.db-wal
+
+# vagrant
+*/.vagrant/
