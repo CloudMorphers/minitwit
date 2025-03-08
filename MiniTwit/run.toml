@@ -1,0 +1,5 @@
+[MiniTwit]
+project = "MiniTwit.csproj"
+
+[MiniTwit.env]
+ASPNETCORE_ENVIRONMENT = "Development"
