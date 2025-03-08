@@ -1,288 +1,202 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
+using MiniTwit.Core;
 using MiniTwit.Data;
 using MiniTwit.Models;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace MiniTwit.Controllers
+namespace MiniTwit.Controllers;
+
+[ApiController]
+[Route("api")]
+public class ApiController : ControllerBase
 {
-    [Route("api/")]
-    public class ApiController : ControllerBase
+    private readonly AtomicIntegerFile _latestProcessedCommandId = new("latest_processed_sim_action_id.txt", -1);
+    private readonly AppDbContext _context;
+    private readonly UserManager<AppUser> _userManager;
+
+    public ApiController(AppDbContext context, UserManager<AppUser> userManager)
     {
-        private readonly AppDbContext _context;
+        _context = context;
+        _userManager = userManager;
+    }
 
-        public ApiController(AppDbContext context)
+    private async Task UpdateLatestAsync()
+    {
+        var latest = Request.Query["latest"].FirstOrDefault();
+        if (int.TryParse(latest, out var parsedCommandId))
         {
-            _context = context;
+            await _latestProcessedCommandId.SetAsync(parsedCommandId);
         }
+    }
 
-        private void UpdateLatest(HttpRequest request)
+    private IActionResult? NotRequestFromSimulator()
+    {
+#if DEBUG
+        return null;
+#endif
+        var fromSimulator = Request.Headers.Authorization.FirstOrDefault();
+        if (fromSimulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh")
         {
-            var latest = request.Query["latest"].FirstOrDefault();
-            if (int.TryParse(latest, out int parsedCommandId) && parsedCommandId != -1)
-            {
-                System.IO.File.WriteAllText("./latest_processed_sim_action_id.txt", parsedCommandId.ToString());
-            }
+            var error = "You are not authorized to use this resource!";
+            return StatusCode(403, new { status = 403, error_msg = error });
         }
+        return null;
+    }
 
-        private IActionResult NotReqFromSimulator(HttpRequest request)
+    [HttpGet("latest")]
+    public async Task<IActionResult> GetLatest()
+    {
+        var latest = await _latestProcessedCommandId.GetAsync();
+        return Ok(new { latest });
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
+    {
+        await UpdateLatestAsync();
+        var hasExistingUser = await _context.Users.AnyAsync(u => u.UserName == model.Username);
+        if (hasExistingUser)
         {
-            var fromSimulator = request.Headers["Authorization"].FirstOrDefault();
-            // if (fromSimulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh")
-            // {
-            //     var error = "You are not authorized to use this resource!";
-            //     return StatusCode(403, new { status = 403, error_msg = error });
-            // }
-            return null;
+            return BadRequest(new { status = 400, error_msg = "The username is already taken" });
         }
-
-        private async Task<int?> GetUserId(string username)
+        var user = new AppUser { UserName = model.Username, Email = model.Email };
+        var result = await _userManager.CreateAsync(user, model.Password);
+        if (!result.Succeeded)
         {
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.UserName == username);
-            return user?.Id;
+            return BadRequest(new { status = 400, error_msg = "An error occurred while registering your account" });
         }
+        return NoContent();
+    }
 
-        [HttpGet("latest")]
-        public IActionResult GetLatest()
+    [HttpGet("msgs/{username?}")]
+    public async Task<IActionResult> Messages(string? username = null, [FromQuery(Name = "no")] int count = 100)
+    {
+        await UpdateLatestAsync();
+        var forbiddenResponse = NotRequestFromSimulator();
+        if (forbiddenResponse != null)
         {
-            string filePath = "./latest_processed_sim_action_id.txt";
-            int latestProcessedCommandId;
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound("File not found.");
-            }
-
-            try
-            {
-                var content = System.IO.File.ReadAllText(filePath);
-                latestProcessedCommandId = int.Parse(content);
-            }
-            catch
-            {
-                latestProcessedCommandId = -1;
-            }
-
-            return Ok(new { latest = latestProcessedCommandId });
+            return forbiddenResponse;
         }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterInputModel input)
+        var user = username != null ? await _userManager.FindByNameAsync(username) : null;
+        if (username != null && user == null)
         {
-            UpdateLatest(Request);
-
-            if (string.IsNullOrEmpty(input.Username))
-            {
-                return BadRequest(new { status = 400, error_msg = "You have to enter a username" });
-            }
-
-            if (string.IsNullOrEmpty(input.Email) || !input.Email.Contains("@"))
-            {
-                return BadRequest(new { status = 400, error_msg = "You have to enter a valid email address" });
-            }
-
-            if (string.IsNullOrEmpty(input.Pwd))
-            {
-                return BadRequest(new { status = 400, error_msg = "You have to enter a password" });
-            }
-
-            var existingUser = await _context.Users.SingleOrDefaultAsync(u => u.UserName == input.Username);
-            if (existingUser != null)
-            {
-                return BadRequest(new { status = 400, error_msg = "The username is already taken" });
-            }
-
-            var user = new AppUser
-            {
-                UserName = input.Username,
-                Email = input.Email,
-                PasswordHash = new PasswordHasher<AppUser>().HashPassword(null, input.Pwd)
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return NotFound();
         }
-
-        [HttpGet("msgs")]
-        public async Task<IActionResult> Messages([FromQuery] int no = 100)
-        {
-            UpdateLatest(Request);
-
-            var notFromSimResponse = NotReqFromSimulator(Request);
-            if (notFromSimResponse != null)
+        var messages = await _context
+            .Messages.Include(message => message.Author)
+            .Where(message => (username == null || message.AuthorId == user!.Id) && !message.IsFlagged)
+            .OrderByDescending(message => message.PublishDate)
+            .Select(message => new
             {
-                return notFromSimResponse;
-            }
+                content = message.Text,
+                pub_date = message.PublishDate,
+                user = message.Author!.UserName,
+            })
+            .Take(count)
+            .ToListAsync();
+        return Ok(messages);
+    }
 
-            var messages = await _context.Messages
-                .Where(m => m.Flagged == 0)
-                .OrderByDescending(m => m.PubDate)
-                .Take(no)
-                .Join(_context.Users,
-                      message => message.AuthorId,
-                      user => user.Id,
-                      (message, user) => new MessageViewModel
-                      {
-                          Email = user.Email,
-                          Username = user.UserName,
-                          Text = message.Text,
-                          PublishDate = DateTimeOffset.FromUnixTimeSeconds(message.PubDate).UtcDateTime
-                      })
-                .ToListAsync();
-
-            return Ok(messages);
+    [HttpPost("msgs/{username}")]
+    public async Task<IActionResult> PostMessage(string username, [FromBody] MessageInputModel model)
+    {
+        await UpdateLatestAsync();
+        var forbiddenResponse = NotRequestFromSimulator();
+        if (forbiddenResponse != null)
+        {
+            return forbiddenResponse;
         }
-
-        [HttpGet("msgs/{username}")]
-        [HttpPost("msgs/{username}")]
-        public async Task<IActionResult> MessagesPerUser(string username, [FromQuery] int no = 100, [FromBody] MessageInputModel input = null)
+        var user = await _userManager.FindByNameAsync(username);
+        if (user == null)
         {
-            UpdateLatest(Request);
+            return NotFound();
+        }
+        if (string.IsNullOrEmpty(model.Content))
+        {
+            return BadRequest("Content is required.");
+        }
+        var message = new Message
+        {
+            Text = model.Content,
+            PublishDate = DateTime.UtcNow,
+            AuthorId = user.Id,
+        };
+        _context.Messages.Add(message);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
 
-            var notFromSimResponse = NotReqFromSimulator(Request);
-            if (notFromSimResponse != null)
+    [HttpGet("fllws/{username}")]
+    public async Task<IActionResult> UserFollows(string username, [FromQuery(Name = "no")] int count = 100)
+    {
+        await UpdateLatestAsync();
+        var forbiddenResponse = NotRequestFromSimulator();
+        if (forbiddenResponse != null)
+        {
+            return forbiddenResponse;
+        }
+        var user = await _userManager.FindByNameAsync(username);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        var followers = await _context
+            .UserFollows.Include(userFollow => userFollow.Following)
+            .Where(userFollow => userFollow.FollowerId == user.Id)
+            .Select(userFollow => userFollow.Following!.UserName)
+            .Take(count)
+            .ToListAsync();
+        return Ok(new { follows = followers });
+    }
+
+    [HttpPost("fllws/{username}")]
+    public async Task<IActionResult> FollowOrUnfollowUser(string username, [FromBody] FollowInputModel model)
+    {
+        await UpdateLatestAsync();
+        var forbiddenResponse = NotRequestFromSimulator();
+        if (forbiddenResponse != null)
+        {
+            return forbiddenResponse;
+        }
+        var user = await _userManager.FindByNameAsync(username);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        if (string.IsNullOrEmpty(model.Follow) && string.IsNullOrEmpty(model.Unfollow))
+        {
+            return BadRequest("Target username is required.");
+        }
+        var otherUser = await _userManager.FindByNameAsync(
+            string.IsNullOrEmpty(model.Follow) ? model.Unfollow! : model.Follow
+        );
+        if (otherUser == null)
+        {
+            return NotFound();
+        }
+        var userFollow = await _context.UserFollows.FirstOrDefaultAsync(userFollow =>
+            userFollow.FollowerId == user.Id && userFollow.FollowingId == otherUser.Id
+        );
+        if (!string.IsNullOrEmpty(model.Follow))
+        {
+            if (userFollow != null)
             {
-                return notFromSimResponse;
-            }
-
-            var userId = await GetUserId(username);
-            if (userId == null)
-            {
-                return NotFound();
-            }
-
-            if (Request.Method == "GET")
-            {
-                var messages = await _context.Messages
-                    .Where(m => m.Flagged == 0 && m.AuthorId == userId)
-                    .OrderByDescending(m => m.PubDate)
-                    .Take(no)
-                    .Select(m => new MessageViewModel
-                    {
-                        Email = _context.Users.Where(u => u.Id == m.AuthorId).Select(u => u.Email).FirstOrDefault(),
-                        Username = _context.Users.Where(u => u.Id == m.AuthorId).Select(u => u.UserName).FirstOrDefault(),
-                        Text = m.Text,
-                        PublishDate = DateTimeOffset.FromUnixTimeSeconds(m.PubDate).UtcDateTime
-                    })
-                    .ToListAsync();
-
-                return Ok(messages);
-            }
-            else if (Request.Method == "POST")
-            {
-                if (input == null || string.IsNullOrEmpty(input.Content))
-                {
-                    return BadRequest("Content is required.");
-                }
-
-                var message = new Message
-                {
-                    AuthorId = userId.Value,
-                    Text = input.Content,
-                    PubDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    Flagged = 0
-                };
-
-                _context.Messages.Add(message);
-                await _context.SaveChangesAsync();
-
                 return NoContent();
             }
-
-            return BadRequest("Unsupported request method.");
+            userFollow = new UserFollow { FollowerId = user.Id, FollowingId = otherUser.Id };
+            _context.UserFollows.Add(userFollow);
+            await _context.SaveChangesAsync();
         }
-
-        [HttpGet("fllws/{username}")]
-        [HttpPost("fllws/{username}")]
-        public async Task<IActionResult> Follow(string username, [FromQuery] int no = 100, [FromBody] FollowInputModel input = null)
+        else
         {
-            UpdateLatest(Request);
-
-            var notFromSimResponse = NotReqFromSimulator(Request);
-            if (notFromSimResponse != null)
+            if (userFollow == null)
             {
-                return notFromSimResponse;
+                return NoContent();
             }
-
-            var userId = await GetUserId(username);
-            if (userId == null)
-            {
-                return NotFound();
-            }
-
-            if (Request.Method == "GET")
-            {
-                var followers = await _context.Followers
-                    .Where(f => f.WhoId == userId)
-                    .Take(no)
-                    .Join(_context.Users,
-                          follower => follower.WhomId,
-                          followedUser => followedUser.Id,
-                          (follower, followedUser) => followedUser.UserName)
-                    .ToListAsync();
-
-                return Ok(new { follows = followers });
-            }
-            else if (Request.Method == "POST")
-            {
-                if (input == null)
-                {
-                    return BadRequest("Invalid input.");
-                }
-
-                if (input.Follow != null)
-                {
-                    var followsUserId = await GetUserId(input.Follow);
-                    if (followsUserId == null)
-                    {
-                        return NotFound();
-                    }
-
-                    var existingFollower = await _context.Followers
-                        .SingleOrDefaultAsync(f => f.WhoId == userId && f.WhomId == followsUserId);
-
-                    if (existingFollower != null)
-                    {
-                        return BadRequest("You are already following this user.");
-                    }
-
-                    var follower = new Follower
-                    {
-                        WhoId = userId.Value,
-                        WhomId = followsUserId.Value
-                    };
-
-                    _context.Followers.Add(follower);
-                    await _context.SaveChangesAsync();
-
-                    return NoContent();
-                }
-                else if (input.Unfollow != null)
-                {
-                    var unfollowsUserId = await GetUserId(input.Unfollow);
-                    if (unfollowsUserId == null)
-                    {
-                        return NotFound();
-                    }
-
-                    var follower = await _context.Followers
-                        .SingleOrDefaultAsync(f => f.WhoId == userId && f.WhomId == unfollowsUserId);
-
-                    if (follower != null)
-                    {
-                        _context.Followers.Remove(follower);
-                        await _context.SaveChangesAsync();
-                    }
-
-                    return NoContent();
-                }
-            }
-
-            return BadRequest("Unsupported request method.");
+            _context.UserFollows.Remove(userFollow);
+            await _context.SaveChangesAsync();
         }
+        return NoContent();
     }
 }
