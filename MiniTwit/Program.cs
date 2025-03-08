@@ -39,6 +39,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 });
 var app = builder.Build();
 
+using (var scope = app.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    context.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
