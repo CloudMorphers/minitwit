@@ -1,4 +1,4 @@
-namespace MiniTwit.Models;
+namespace MiniTwit.Models.Api;
 
 public class FollowInputModel
 {

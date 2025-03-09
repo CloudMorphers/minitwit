@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniTwit.Core;
 using MiniTwit.Data;
-using MiniTwit.Models;
+using MiniTwit.Models.Api;
 
 namespace MiniTwit.Controllers;
 
@@ -34,7 +34,7 @@ public class ApiController : ControllerBase
     {
 #if DEBUG
         return null;
-#endif
+#else
         var fromSimulator = Request.Headers.Authorization.FirstOrDefault();
         if (fromSimulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh")
         {
@@ -42,6 +42,7 @@ public class ApiController : ControllerBase
             return StatusCode(403, new { status = 403, error_msg = error });
         }
         return null;
+#endif
     }
 
     [HttpGet("latest")]
@@ -55,8 +56,8 @@ public class ApiController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
     {
         await UpdateLatestAsync();
-        var hasExistingUser = await _context.Users.AnyAsync(u => u.UserName == model.Username);
-        if (hasExistingUser)
+        var existingUser = await _userManager.FindByNameAsync(model.Username);
+        if (existingUser != null)
         {
             return BadRequest(new { status = 400, error_msg = "The username is already taken" });
         }
