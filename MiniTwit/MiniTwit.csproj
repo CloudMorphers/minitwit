@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UserSecretsId>aspnet-MiniTwit-6eedd5d8-e38a-457c-89b1-25a7d73637c6</UserSecretsId>
   </PropertyGroup>
 

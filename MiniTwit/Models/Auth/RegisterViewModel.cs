@@ -1,13 +1,20 @@
-namespace MiniTwit.Models.Auth
+using System.ComponentModel.DataAnnotations;
+
+namespace MiniTwit.Models.Auth;
+
+public class RegisterViewModel
 {
-    public class RegisterViewModel
-    {
-        public string Username { get; set; }
+    [Required(ErrorMessage = "You have to enter a username")]
+    public string Username { get; set; } = string.Empty;
 
-        public string Email { get; set; }
+    [Required(ErrorMessage = "You have to enter an email address")]
+    [EmailAddress(ErrorMessage = "You have to enter a valid email address")]
+    public string Email { get; set; } = string.Empty;
 
-        public string Password { get; set; }
+    [Required(ErrorMessage = "You have to enter a password")]
+    public string Password { get; set; } = string.Empty;
 
-        public string Password2 { get; set; }
-    }
+    [Required(ErrorMessage = "You have to enter a password confirmation")]
+    [Compare(nameof(Password), ErrorMessage = "The two passwords do not match")]
+    public string PasswordConfirmation { get; set; } = string.Empty;
 }
