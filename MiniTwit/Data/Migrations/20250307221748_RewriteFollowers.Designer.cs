@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniTwit.Data;
 
@@ -10,9 +11,11 @@ using MiniTwit.Data;
 namespace MiniTwit.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250307221748_RewriteFollowers")]
+    partial class RewriteFollowers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
@@ -217,7 +220,7 @@ namespace MiniTwit.Data.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsFlagged")
+                    b.Property<bool>("Flagged")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("PublishDate")
@@ -228,8 +231,6 @@ namespace MiniTwit.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AuthorId");
 
                     b.ToTable("Messages");
                 });
@@ -298,17 +299,6 @@ namespace MiniTwit.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MiniTwit.Data.Message", b =>
-                {
-                    b.HasOne("MiniTwit.Data.AppUser", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
                 });
 
             modelBuilder.Entity("MiniTwit.Data.UserFollow", b =>

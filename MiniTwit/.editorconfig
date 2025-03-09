@@ -1,0 +1,3 @@
+[*.cs]
+# Use primary constructor
+dotnet_diagnostic.IDE0290.severity = none

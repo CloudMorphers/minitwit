@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniTwit.Data;
 
@@ -10,9 +11,11 @@ using MiniTwit.Data;
 namespace MiniTwit.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250307190653_UseDateTimeForPubDate")]
+    partial class UseDateTimeForPubDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
@@ -208,7 +211,20 @@ namespace MiniTwit.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("MiniTwit.Data.Message", b =>
+            modelBuilder.Entity("MiniTwit.Models.Follower", b =>
+                {
+                    b.Property<int>("WhoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("WhomId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("WhoId", "WhomId");
+
+                    b.ToTable("Followers");
+                });
+
+            modelBuilder.Entity("MiniTwit.Models.Message", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -217,7 +233,7 @@ namespace MiniTwit.Data.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsFlagged")
+                    b.Property<int>("Flagged")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("PublishDate")
@@ -229,24 +245,7 @@ namespace MiniTwit.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AuthorId");
-
                     b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("MiniTwit.Data.UserFollow", b =>
-                {
-                    b.Property<int>("FollowerId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("FollowingId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("FollowerId", "FollowingId");
-
-                    b.HasIndex("FollowingId");
-
-                    b.ToTable("UserFollows");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -298,43 +297,6 @@ namespace MiniTwit.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("MiniTwit.Data.Message", b =>
-                {
-                    b.HasOne("MiniTwit.Data.AppUser", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Author");
-                });
-
-            modelBuilder.Entity("MiniTwit.Data.UserFollow", b =>
-                {
-                    b.HasOne("MiniTwit.Data.AppUser", "Follower")
-                        .WithMany("Following")
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MiniTwit.Data.AppUser", "Following")
-                        .WithMany("Followers")
-                        .HasForeignKey("FollowingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Follower");
-
-                    b.Navigation("Following");
-                });
-
-            modelBuilder.Entity("MiniTwit.Data.AppUser", b =>
-                {
-                    b.Navigation("Followers");
-
-                    b.Navigation("Following");
                 });
 #pragma warning restore 612, 618
         }

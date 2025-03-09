@@ -1,8 +1,8 @@
-namespace MiniTwit.Models
+namespace MiniTwit.Models;
+
+public class FollowInputModel
 {
-    public class FollowInputModel
-    {
-        public string Follow { get; set; }
-        public string Unfollow { get; set; }
-    }
+    public string? Follow { get; set; }
+
+    public string? Unfollow { get; set; }
 }

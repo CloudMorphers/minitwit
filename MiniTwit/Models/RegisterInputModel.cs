@@ -1,9 +1,17 @@
-namespace MiniTwit.Models
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace MiniTwit.Models;
+
+public class RegisterInputModel
 {
-    public class RegisterInputModel
-    {
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Pwd { get; set; }
-    }
+    [Required(ErrorMessage = "You have to enter a username")]
+    public string Username { get; set; }
+
+    [EmailAddress(ErrorMessage = "You have to enter a valid email address")]
+    public string Email { get; set; }
+
+    [JsonPropertyName("pwd")]
+    [Required(ErrorMessage = "You have to enter a password")]
+    public string Password { get; set; }
 }

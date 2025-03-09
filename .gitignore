@@ -409,5 +409,8 @@ App.db
 App.db-shm
 App.db-wal
 
+# Data files
+latest_processed_sim_action_id.txt
+
 # vagrant
 */.vagrant/

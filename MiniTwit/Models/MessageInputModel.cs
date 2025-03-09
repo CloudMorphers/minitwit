@@ -1,7 +1,7 @@
-namespace MiniTwit.Models
+namespace MiniTwit.Models;
+
+public class MessageInputModel
 {
-    public class MessageInputModel
-    {
-        public string Content { get; set; }
-    }
+    public string? Content { get; set; }
 }
+
