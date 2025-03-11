@@ -20,4 +20,5 @@ COPY --from=build /app/publish .
 EXPOSE 8080
 
 # Start the application
-ENTRYPOINT ["dotnet", "MiniTwit.dll"]
+ENTRYPOINT ["dotnet", "MiniTwit.dll", "--urls", "http://0.0.0.0:8080"]
+
