@@ -2,13 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "staging" ]
+    branches: [ "main" ]
     paths:
-      - 'DBserver/**'  
-  pull_request:
-    branches: [ "staging" ]
-    paths:
-      - 'DBserver/**'  
+      - 'DbServer/**' 
 
 jobs:
   build:
@@ -25,7 +21,7 @@ jobs:
         password: ${{ secrets.DOCKER_TOKEN }}
 
     - name: Build the Docker image
-      run: docker build WebServer --file DBserver/Dockerfile --tag alexlerche/itu_minitwit:latest
+      run: docker build DbServer --file DbServer/Dockerfile --tag alexlerche/itu_minitwit:latest
 
     - name: Push Docker image to Docker Hub
       run: docker push alexlerche/itu_minitwit:latest

@@ -2,13 +2,9 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "staging" ]
+    branches: [ "main" ]
     paths:
-      - 'WebServer/**'  # Only trigger if files inside WebServer/ change
-  pull_request:
-    branches: [ "staging" ]
-    paths:
-      - 'WebServer/**'  # Only trigger if files inside WebServer/ change
+      - 'WebServer/**'
 
 jobs:
   build:
