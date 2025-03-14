@@ -115,7 +115,7 @@ public class ApiController : ControllerBase
         }
         if (string.IsNullOrEmpty(model.Content))
         {
-            return BadRequest("Content is required.");
+            return BadRequest("Content is required");
         }
         var message = new Message
         {
@@ -167,7 +167,7 @@ public class ApiController : ControllerBase
         }
         if (string.IsNullOrEmpty(model.Follow) && string.IsNullOrEmpty(model.Unfollow))
         {
-            return BadRequest("Target username is required.");
+            return BadRequest("Target username is required");
         }
         var otherUser = await _userManager.FindByNameAsync(
             string.IsNullOrEmpty(model.Follow) ? model.Unfollow! : model.Follow
