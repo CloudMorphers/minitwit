@@ -17,15 +17,15 @@
             @if (SignInManager.IsSignedIn(User))
             {
                 var username = UserManager.GetUserName(User);
-                <a asp-action="MyTimeline">my timeline</a>
+                <a asp-controller="Home" asp-action="Index">my timeline</a>
                 <text>|</text>
-                <a asp-action="PublicTimeline">public timeline</a>
+                <a asp-controller="Home" asp-action="PublicTimeline">public timeline</a>
                 <text>|</text>
                 <a asp-controller="Auth" asp-action="Logout">sign out [@username]</a>
             }
             else
             {
-                <a asp-action="PublicTimeline">public timeline</a>
+                <a asp-controller="Home" asp-action="PublicTimeline">public timeline</a>
                 <text>|</text>
                 <a asp-controller="Auth" asp-action="Register">sign up</a>
                 <text>|</text>

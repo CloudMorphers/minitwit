@@ -2,6 +2,7 @@
 @inject UserManager<AppUser> UserManager
 @model TimelineViewModel
 <h2>@ViewData["Title"]</h2>
+@await Html.PartialAsync("_Notification")
 @{
     var user = await UserManager.GetUserAsync(User);
     if (user != null)
@@ -16,13 +17,15 @@
                 else if (Model.FollowsUser)
                 {
                     <text>You are currently following this user.</text>
-                    <a class="unfollow" asp-action="UnfollowUser" asp-route-username="@Model.Username">Unfollow user</a>
+                    <a class="unfollow" asp-controller="Home" asp-action="UnfollowUser"
+                       asp-route-username="@Model.Username">Unfollow user</a>
                     <text>.</text>
                 }
                 else
                 {
                     <text>You are not yet following this user.</text>
-                    <a class="follow" asp-action="FollowUser" asp-route-username="@Model.Username">Follow user</a>
+                    <a class="follow" asp-controller="Home" asp-action="FollowUser"
+                       asp-route-username="@Model.Username">Follow user</a>
                     <text>.</text>
                 }
             </div>

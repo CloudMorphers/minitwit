@@ -2,15 +2,16 @@
 @inject UserManager<AppUser> UserManager
 @model MyTimelineViewModel
 <h2>@ViewData["Title"]</h2>
+@await Html.PartialAsync("_Notification")
 @if (SignInManager.IsSignedIn(User))
 {
     var username = UserManager.GetUserName(User);
     <div class="twitbox">
         <h3>What's on your mind @username?</h3>
-        <form asp-action="AddMessage" method=post>
+        <form asp-controller="Home" asp-action="PostMessage" method="post">
             <p>
-                <input type="text" name="text" size=60>
-                <input type="submit" value="Share">
+                <input type="text" asp-for="Text" size="60"><!--
+                --><input type="submit" value="Share">
             </p>
         </form>
     </div>

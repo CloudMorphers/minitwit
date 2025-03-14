@@ -19,6 +19,7 @@ public class AuthController : Controller
     [HttpGet("/register")]
     public IActionResult Register()
     {
+        ViewData["Title"] = "Sign Up";
         return View();
     }
 
@@ -54,6 +55,7 @@ public class AuthController : Controller
     [HttpGet("/login")]
     public IActionResult Login()
     {
+        ViewData["Title"] = "Sign In";
         return View();
     }
 

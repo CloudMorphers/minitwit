@@ -1,24 +1,17 @@
 @model MiniTwit.Models.Auth.RegisterViewModel
-
 <h2>Sign Up</h2>
-
 @await Html.PartialAsync("_Notification")
-
-<form method="post">
+<form asp-controller="Auth" asp-action="Register" method="post">
     <dl>
         <dt>Username:</dt>
-        <dd><input type="text" asp-for="Username" /></dd>
-
+        <dd><input type="text" asp-for="Username" size="30"></dd>
         <dt>E-Mail:</dt>
-        <dd><input type="text" asp-for="Email" /></dd>
-
+        <dd><input type="text" asp-for="Email" size="30"></dd>
         <dt>Password:</dt>
-        <dd><input type="password" asp-for="Password" /></dd>
-
+        <dd><input type="password" asp-for="Password" size="30"></dd>
         <dt>Password <small>(repeat)</small>:</dt>
-        <dd><input type="password" asp-for="PasswordConfirmation" /></dd>
+        <dd><input type="password" asp-for="PasswordConfirmation" size="30"></dd>
     </dl>
-
     <div class="actions">
         <input type="submit" value="Sign Up">
     </div>
