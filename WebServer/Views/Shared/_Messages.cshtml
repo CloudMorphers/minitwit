@@ -3,10 +3,10 @@
     @foreach (var message in Model)
     {
         <li>
-            <img src="{{ message.email|gravatar(size=48) }}">
+            <img src="@message.GetGravatarUrl()">
             <p>
                 <strong>
-                    <a asp-controller="Timeline" asp-action="UserTimeline"
+                    <a asp-controller="Home" asp-action="UserTimeline"
                        asp-route-username="@message.Username">@message.Username</a>
                 </strong>
                 @message.Text
