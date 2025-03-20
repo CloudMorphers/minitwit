@@ -1,10 +1,10 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'DbServer/**' 
+  push: # Currently deactivated 
+    # branches: [ "main" ]
+    # paths:
+    #   - 'DbServer/**' 
 
 jobs:
   build:
