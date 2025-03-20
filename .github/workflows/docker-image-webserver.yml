@@ -56,6 +56,10 @@ jobs:
             cd /app
             rm -f docker-compose.yml
             curl -o docker-compose.yml https://raw.githubusercontent.com/CloudMorphers/minitwit/develop/WebServer/docker-compose.yml
+            echo "Stopping old containers..."
+            docker ps -aq --filter "name=minitwit_web" | xargs -r docker stop
+            docker ps -aq --filter "name=minitwit_web" | xargs -r docker rm
+            docker volume prune -f
             echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             docker-compose pull
             docker-compose up -d
