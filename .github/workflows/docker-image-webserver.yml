@@ -3,9 +3,9 @@ name: Docker Image CI
 on:
   push:
     branches:
-      - develop
-    # paths:
-    #   - WebServer/**
+      - main
+    paths:
+      - WebServer/**
 
 jobs:
   build:
