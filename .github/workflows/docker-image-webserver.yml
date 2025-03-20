@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_USER }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           script: |
-            cd /path/to/your/app
+            cd /var/www/minitwit
             docker-compose pull
             docker-compose up -d
             docker image prune -f  # Optional: clean up unused images
