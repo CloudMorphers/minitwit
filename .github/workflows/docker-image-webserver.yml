@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - develop
-    paths:
-      - WebServer/**
+    # paths:
+    #   - WebServer/**
 
 jobs:
   build:
@@ -37,7 +37,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build 
+    needs: build
     steps:
       - name: Deploy to DigitalOcean via SSH
         uses: appleboy/ssh-action@master
