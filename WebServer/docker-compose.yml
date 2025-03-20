@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  webserver:
+    image: alexlerche/itu_minitwit:latest
+    container_name: minitwit_web
+    restart: always
+    ports:
+      - "8080:8080"

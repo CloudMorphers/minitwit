@@ -46,7 +46,10 @@ jobs:
           username: ${{ secrets.DIGITALOCEAN_USER }}
           key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
           script: |
-            cd var/www/minitwit
+            mkdir -p /app
+            cd /app
+            rm -f docker-compose.yml
+            curl -o docker-compose.yml https://github.com/CloudMorphers/minitwit/tree/develop/WebServer/docker-compose.yml
             docker-compose pull
             docker-compose up -d
-            docker image prune -f  # Optional: clean up unused images
+            docker image prune -f
