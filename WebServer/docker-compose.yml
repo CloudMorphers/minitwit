@@ -1,9 +1,15 @@
-version: "3.8"
-
 services:
-  webserver:
+  web:
     image: alexlerche/itu_minitwit:latest
     container_name: minitwit_web
     restart: always
+    environment:
+      MINITWIT_DB_CONNECTION_STRING:
+        Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
     ports:
-      - "8080:8080"
+      - 8080:8080
+    volumes:
+      - minitwit_app_data:/data
+
+volumes:
+  minitwit_app_data:
