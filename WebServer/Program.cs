@@ -6,10 +6,8 @@ using MiniTwit.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
+var connectionString = Environment.GetEnvironmentVariable("MINITWIT_DB_CONNECTION_STRING");
+builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
