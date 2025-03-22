@@ -11,14 +11,19 @@ namespace MiniTwit.Controllers;
 [Route("api")]
 public class ApiController : ControllerBase
 {
-    private readonly AtomicIntegerFile _latestProcessedCommandId = new("latest_processed_sim_action_id.txt", -1);
     private readonly AppDbContext _context;
     private readonly UserManager<AppUser> _userManager;
+    private readonly AtomicIntegerFile _latestProcessedCommandId;
 
     public ApiController(AppDbContext context, UserManager<AppUser> userManager)
     {
         _context = context;
         _userManager = userManager;
+        var dataDirPath =
+            Environment.GetEnvironmentVariable("DATA_DIR")
+            ?? throw new InvalidOperationException("The DATA_DIR environment variable must be set.");
+        var latestProcessedCommandIdFilePath = Path.Combine(dataDirPath, "latest_processed_sim_action_id.txt");
+        _latestProcessedCommandId = new AtomicIntegerFile(latestProcessedCommandIdFilePath, -1);
     }
 
     private async Task UpdateLatestAsync()
