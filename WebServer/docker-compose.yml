@@ -1,6 +1,6 @@
 services:
   web:
-    image: alexlerche/itu_minitwit:latest
+    image: mrphil2105/minitwit_web:latest
     container_name: minitwit_web
     restart: always
     environment:
