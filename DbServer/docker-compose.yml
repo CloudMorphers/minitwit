@@ -18,5 +18,12 @@ services:
     volumes:
       - minitwit_pg_data:/var/lib/postgresql/data
 
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    command: --interval 300 --cleanup=true
+
 volumes:
   minitwit_pg_data:

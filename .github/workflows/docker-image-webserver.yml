@@ -24,43 +24,13 @@ jobs:
         run: dotnet publish WebServer/MiniTwit.csproj -c Release -o WebServer/publish
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Docker image
         run: docker build WebServer -f WebServer/Dockerfile -t mrphil2105/minitwit_web:latest
 
       - name: Push Docker image
         run: docker push mrphil2105/minitwit_web:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Deploy to DigitalOcean via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DIGITALOCEAN_HOST_WEBSERVER }}
-          username: ${{ secrets.DIGITALOCEAN_USER }}
-          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
-          script: |
-            mkdir -p /app
-            cd /app
-            rm -f docker-compose.yml
-            curl -o docker-compose.yml https://raw.githubusercontent.com/CloudMorphers/minitwit/develop/WebServer/docker-compose.yml
-            echo "Stopping old containers..."
-            docker ps -aq --filter "name=minitwit_web" | xargs -r docker stop
-            docker ps -aq --filter "name=minitwit_web" | xargs -r docker rm
-            docker volume prune -f
-            echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            docker-compose pull
-            docker-compose up -d
-            docker image prune -f

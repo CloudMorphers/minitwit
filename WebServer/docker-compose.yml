@@ -23,5 +23,12 @@ services:
       web:
         condition: service_started
 
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    command: --interval 300 --cleanup=true
+
 volumes:
   minitwit_app_data:
