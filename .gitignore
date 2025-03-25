@@ -405,12 +405,19 @@ FodyWeavers.xsd
 __pycache__/
 
 # SQLite
-App.db
-App.db-shm
-App.db-wal
+*.db
+*.db-shm
+*.db-wal
+
+# SQL files
+*.sql
 
 # Data files
 latest_processed_sim_action_id.txt
 
-# vagrant
-*/.vagrant/
+# Vagrant
+*.vagrant/
+
+# Tar files
+*.tar
+*.tar.gz

@@ -3,3 +3,4 @@ project = "MiniTwit.csproj"
 
 [MiniTwit.env]
 ASPNETCORE_ENVIRONMENT = "Development"
+MINITWIT_DB_CONNECTION_STRING = "Host=localhost;Username=minitwit;Password=supersecret;Database=minitwit_db"
