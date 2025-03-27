@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MiniTwit.Data;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,11 +59,17 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseHttpMetrics();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}").WithStaticAssets();
+
+app.MapGet("/health", () => Results.Ok("Healthy"));
+
+app.UseMetricServer();
 
 app.Run();

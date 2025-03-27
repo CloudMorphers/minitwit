@@ -27,3 +27,4 @@ services:
 
 volumes:
   minitwit_pg_data:
+  grafana_data:
