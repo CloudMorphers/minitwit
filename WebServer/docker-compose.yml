@@ -4,8 +4,7 @@ services:
     container_name: minitwit_web
     restart: always
     environment:
-      MINITWIT_DB_CONNECTION_STRING:
-        Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
+      MINITWIT_DB_CONNECTION_STRING: Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
     ports:
       - 8080:8080
     volumes:
@@ -31,7 +30,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_PASSWORD=devopsStudent
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
       - prometheus
