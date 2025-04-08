@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   web:
     image: mrphil2105/minitwit_web:latest
@@ -10,6 +12,9 @@ services:
       - 8080:8080
     volumes:
       - minitwit_app_data:/data
+      - /var/log:/var/log   # Promtail needs access to container logs
+    networks:
+      - monitoring
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -23,9 +28,11 @@ services:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - web
+    networks:
+      - monitoring
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
     volumes:
@@ -33,8 +40,58 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus:9090
+          isDefault: true
+        EOF
+        /run.sh
     depends_on:
       - prometheus
+      - loki
+    networks:
+      - monitoring
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring
+    depends_on:
+      - loki
 
   nginx:
     image: nginx:latest
@@ -47,6 +104,8 @@ services:
     depends_on:
       web:
         condition: service_started
+    networks:
+      - monitoring
 
   watchtower:
     image: containrrr/watchtower
@@ -54,7 +113,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     restart: always
     command: --interval 300 --cleanup=true
+    networks:
+      - monitoring
 
 volumes:
   minitwit_app_data:
   grafana_data:
+
+networks:
+  monitoring:
+    driver: bridge
