@@ -32,13 +32,17 @@ jobs:
         run: |
           dotnet tool install --global Microsoft.Playwright.CLI
           export PATH="$PATH:$HOME/.dotnet/tools"
-          cd MiniTwit.UI.Tests
+          cd Tests/ui/api/integration/MiniTwit.UI.Tests
           playwright install
 
       - name: Run UI tests
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet test MiniTwit.UI.Tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+          dotnet test Tests/ui/api/integration/MiniTwit.UI.Tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+
+      - name: Run API tests
+        run: |
+          dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
