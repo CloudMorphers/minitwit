@@ -1,18 +1,16 @@
-version: "3.8"
-
 services:
   web:
     image: mrphil2105/minitwit_web:latest
     container_name: minitwit_web
     restart: always
     environment:
-      MINITWIT_DB_CONNECTION_STRING:
-        Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
+      MINITWIT_DB_CONNECTION_STRING: Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
     ports:
       - 8080:8080
     volumes:
       - minitwit_app_data:/data
-      - /var/log:/var/log   # Promtail needs access to container logs
+      - /var/log:/var/log
+      - /var/log/minitwit/api:/var/log/minitwit/api
     networks:
       - monitoring
     healthcheck:
@@ -21,7 +19,7 @@ services:
       retries: 3
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
@@ -87,6 +85,9 @@ services:
     volumes:
       - /var/log:/var/log
       - ./monitoring/promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/log/minitwit/api:/var/log/minitwit/api:ro
     command: -config.file=/etc/promtail/config.yml
     networks:
       - monitoring

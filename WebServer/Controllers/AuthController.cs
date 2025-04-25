@@ -9,16 +9,19 @@ public class AuthController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
+    private readonly ILogger<AuthController> _logger; // Add logger
 
-    public AuthController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+    public AuthController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ILogger<AuthController> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
+        _logger = logger; // Initialize logger
     }
 
     [HttpGet("/register")]
     public IActionResult Register()
     {
+        _logger.LogInformation("Register page requested");
         ViewData["Title"] = "Sign Up";
         return View();
     }
@@ -26,6 +29,7 @@ public class AuthController : Controller
     [HttpPost("/register")]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        _logger.LogInformation("Register attempt for username {Username}", model.Username);
         if (!ModelState.IsValid)
         {
             var errorMessage = ModelState
@@ -55,6 +59,7 @@ public class AuthController : Controller
     [HttpGet("/login")]
     public IActionResult Login()
     {
+        _logger.LogInformation("Login page requested");
         ViewData["Title"] = "Sign In";
         return View();
     }
@@ -62,6 +67,7 @@ public class AuthController : Controller
     [HttpPost("/login")]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
+        _logger.LogInformation("Login attempt for username {Username}", model.Username);
         if (!ModelState.IsValid)
         {
             var errorMessage = ModelState
@@ -84,6 +90,7 @@ public class AuthController : Controller
     [HttpGet("/logout")]
     public async Task<IActionResult> Logout()
     {
+        _logger.LogInformation("Logout request");
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");
     }
