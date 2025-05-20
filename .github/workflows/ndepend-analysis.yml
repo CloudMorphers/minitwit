@@ -1,0 +1,33 @@
+name: NDepend Analysis
+
+on:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install .NET SDK
+        run: |
+          sudo add-apt-repository ppa:dotnet/backports
+          sudo apt-get update -y
+          sudo apt-get install -y dotnet-sdk-9.0
+
+      - name: Build solution for analysis
+        run: dotnet build webserver/webserver/MiniTwit.csproj -c Release
+
+      - name: Run NDepend analysis
+        run: |
+          # Assuming NDepend is in 'tools/NDepend' folder of repo
+          dotnet tools/NDepend/NDepend.Console.MultiOS.dll Project.ndproj
+
+      - name: Upload NDepend report
+        uses: actions/upload-artifact@v3
+        with:
+          name: NDependReport
+          path: |
+            NDependOut/NDependReport.html
+            NDependOut/NDependReportFiles/
