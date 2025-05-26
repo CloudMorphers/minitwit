@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - WebServer/**
-      - report/** #include changes to report dir
 
 jobs:
   build:
@@ -35,23 +34,3 @@ jobs:
 
       - name: Push Docker image
         run: docker push mrphil2105/minitwit_web:latest
-
-  build_latex:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: tex/main.tex
-          working_directory: report
-          args: -pdf -outdir=build
-
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: report-pdf
-          path: report/build/main.pdf
