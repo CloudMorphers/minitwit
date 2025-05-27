@@ -7,6 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: docker://pandoc/core:2.9
+      - name: Compile LaTeX to PDF
+        uses: docker://blang/latex:ubuntu
         with:
-          args: pandoc report/tex/main.tex -o report/build/main.pdf --pdf-engine=xelatex
+          args: xelatex -output-directory=report/build report/tex/main.tex
