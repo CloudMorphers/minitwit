@@ -3,16 +3,19 @@ name: Build LaTeX PDF
 on: push
 
 jobs:
-  convert_via_pandoc:
-    runs-on: ubuntu-22.04
-
+  build_latex:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: docker://pandoc/core:3.7
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
         with:
-          args: "./report/tex/main.tex -o ./report/build/main.pdf --pdf-engine=xelatex"
+          root_file: tex/main.tex
+          working_directory: report
+          latexmk_use_xelatex: true
+          args: -outdir=build
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
