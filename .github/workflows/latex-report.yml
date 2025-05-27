@@ -5,6 +5,8 @@ on:
     branches-ignore:
       - main
       - develop
+    paths:
+      - report/**
 
 permissions:
   contents: write
