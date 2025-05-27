@@ -7,6 +7,9 @@ on:
     paths:
       - report/**
 
+permissions:
+  contents: write
+
 jobs:
   build_latex:
     runs-on: ubuntu-latest
@@ -14,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # ensure full history for git diff
 
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
@@ -27,3 +32,17 @@ jobs:
         with:
           name: report-pdf
           path: report/build/main.pdf
+
+      - name: Commit and push PDF back to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Check if PDF is different from what's in the repo
+          if ! git diff --quiet -- report/build/main.pdf; then
+            git add report/build/main.pdf
+            git commit -m "Update generated PDF [skip ci]"
+            git push origin ${GITHUB_REF_NAME}
+          else
+            echo "No changes to commit."
+          fi
