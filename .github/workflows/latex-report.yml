@@ -3,7 +3,7 @@ name: Report Build
 on:
   push:
     branches:
-      - main
+      - develop
     paths:
       - report/**
 
