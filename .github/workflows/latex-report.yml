@@ -3,13 +3,10 @@ name: Build docs
 on: push
 
 jobs:
-  convert_via_pandoc:
-    runs-on: ubuntu-22.04
+  build_pdf:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: docker://pandoc/core:2.9
         with:
-          args: report/tex/main.tex -o report/build/main.pdf --pdf-engine=xelatex
+          args: pandoc report/tex/main.tex -o report/build/main.pdf --pdf-engine=xelatex
