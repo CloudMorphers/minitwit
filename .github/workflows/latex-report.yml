@@ -1,27 +1,15 @@
-name: Report Build
+name: Build docs
 
 on: push
 
 jobs:
-  build_latex:
-    runs-on: ubuntu-latest
-
+  convert_via_pandoc:
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Create build directory
-        run: mkdir -p report/build
-
-      - name: Compile LaTeX to PDF using Pandoc Docker
-        uses: docker://pandoc/core:2.9
+      - uses: docker://pandoc/core:2.9
         with:
-          args: ./report/tex/main.tex -o ./report/build/main.pdf --pdf-engine=xelatex
-
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: report-pdf
-          path: report/build/main.pdf
+          args: report/tex/main.tex -o report/build/main.pdf --pdf-engine=xelatex
