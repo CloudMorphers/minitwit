@@ -38,9 +38,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Check if PDF is different from what's in the repo
-          if ! git diff --quiet -- report/build/main.pdf; then
-            git add report/build/main.pdf
+          git add report/build/main.pdf
+
+          if ! git diff --cached --quiet; then
             git commit -m "Update generated PDF [skip ci]"
             git push origin ${GITHUB_REF_NAME}
           else
