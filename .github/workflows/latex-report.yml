@@ -2,8 +2,9 @@ name: Report Build
 
 on:
   push:
-    branches:
+    branches-ignore:
       - main
+      - develop
     paths:
       - report/**
 
