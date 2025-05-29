@@ -14,7 +14,7 @@ services:
       start_period: 30s
       retries: 3
     ports:
-      - 5432:5432
+      - ${PRIVATE_IP}:5432:5432
     volumes:
       - minitwit_pg_data:/var/lib/postgresql/data
 
@@ -27,4 +27,3 @@ services:
 
 volumes:
   minitwit_pg_data:
-  grafana_data:
