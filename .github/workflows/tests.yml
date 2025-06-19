@@ -26,13 +26,13 @@ jobs:
         run: |
           dotnet tool install --global Microsoft.Playwright.CLI
           export PATH="$PATH:$HOME/.dotnet/tools"
-          cd Tests/ui/api/integration/MiniTwit.UI.Tests
+          cd Tests/ui-tests
           playwright install
 
       - name: Run UI tests
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet test Tests/ui/api/integration/MiniTwit.UI.Tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+          dotnet test Tests/ui-tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
 
       - name: Run API tests
         run: |
