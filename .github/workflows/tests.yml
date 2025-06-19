@@ -31,7 +31,7 @@ jobs:
 
       - name: Start WebServer
         run: |
-          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:8080" &
+          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:5037" &
           sleep 20
 
       - name: Run UI tests
