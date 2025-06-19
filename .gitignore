@@ -422,3 +422,7 @@ latest_processed_sim_action_id.txt
 # Tar files
 *.tar
 *.tar.gz
+
+# alex
+*.vscode
+*.env

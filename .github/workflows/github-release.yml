@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - "report/**"
+
+permissions:
+  contents: write
 
 jobs:
   release:

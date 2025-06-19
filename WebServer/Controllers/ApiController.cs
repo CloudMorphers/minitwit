@@ -14,6 +14,7 @@ public class ApiController : ControllerBase
     private static readonly AtomicIntegerFile _latestProcessedCommandId;
     private readonly AppDbContext _context;
     private readonly UserManager<AppUser> _userManager;
+    private readonly ILogger<ApiController> _logger;
 
     static ApiController()
     {
@@ -24,10 +25,11 @@ public class ApiController : ControllerBase
         _latestProcessedCommandId = new AtomicIntegerFile(latestProcessedCommandIdFilePath, -1);
     }
 
-    public ApiController(AppDbContext context, UserManager<AppUser> userManager)
+    public ApiController(AppDbContext context, UserManager<AppUser> userManager, ILogger<ApiController> logger)
     {
         _context = context;
         _userManager = userManager;
+        _logger = logger; // Initialize logger
     }
 
     private async Task UpdateLatestAsync()
@@ -57,6 +59,7 @@ public class ApiController : ControllerBase
     [HttpGet("latest")]
     public async Task<IActionResult> GetLatest()
     {
+        _logger.LogInformation("Get latest command ID request");
         var latest = await _latestProcessedCommandId.GetAsync();
         return Ok(new { latest });
     }
@@ -64,6 +67,7 @@ public class ApiController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterInputModel model)
     {
+        _logger.LogInformation("API register attempt for username {Username}", model.Username);
         await UpdateLatestAsync();
         var existingUser = await _userManager.FindByNameAsync(model.Username);
         if (existingUser != null)
@@ -82,6 +86,7 @@ public class ApiController : ControllerBase
     [HttpGet("msgs/{username?}")]
     public async Task<IActionResult> Messages(string? username = null, [FromQuery(Name = "no")] int count = 100)
     {
+        _logger.LogInformation("Get messages request for username {Username} with count {Count}", username ?? "All", count);
         await UpdateLatestAsync();
         var forbiddenResponse = NotRequestFromSimulator();
         if (forbiddenResponse != null)
@@ -111,6 +116,7 @@ public class ApiController : ControllerBase
     [HttpPost("msgs/{username}")]
     public async Task<IActionResult> PostMessage(string username, [FromBody] MessageInputModel model)
     {
+        _logger.LogInformation("Post message request for username {Username} with content: {Content}", username, model.Content);
         await UpdateLatestAsync();
         var forbiddenResponse = NotRequestFromSimulator();
         if (forbiddenResponse != null)
@@ -140,6 +146,7 @@ public class ApiController : ControllerBase
     [HttpGet("fllws/{username}")]
     public async Task<IActionResult> UserFollows(string username, [FromQuery(Name = "no")] int count = 100)
     {
+        _logger.LogInformation("Get followers request for username {Username} with count {Count}", username, count);
         await UpdateLatestAsync();
         var forbiddenResponse = NotRequestFromSimulator();
         if (forbiddenResponse != null)
@@ -163,6 +170,7 @@ public class ApiController : ControllerBase
     [HttpPost("fllws/{username}")]
     public async Task<IActionResult> FollowOrUnfollowUser(string username, [FromBody] FollowInputModel model)
     {
+        _logger.LogInformation("Follow/Unfollow request for username {Username} with follow: {Follow} and unfollow: {Unfollow}", username, model.Follow, model.Unfollow);
         await UpdateLatestAsync();
         var forbiddenResponse = NotRequestFromSimulator();
         if (forbiddenResponse != null)

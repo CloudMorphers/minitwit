@@ -1,0 +1,242 @@
+\documentclass[12pt,a4paper,reqno]{report}
+\usepackage{mystyle}
+
+\begin{document}
+\input{./tex/title.tex} 
+\clearpage
+\tableofcontents
+%\addtocontents{toc}{\vspace{-0.5cm}}
+
+\setcounter{page}{0}
+\clearpage
+
+%\clearpage
+%\section*{Abstract}
+%At the start of the project, we chose to replace the original Flask-React application with a new implementation in ASP.NET Core. This was a complete rewrite, as it involved changing both the front-end and back-end technology stacks and reimplementing functionality from scratch.
+
+\section{System Perspective}
+
+\subsection{Design and Architecture}
+% Design and architecture of your ITU-MiniTwit systems
+
+% Overview description and diagram of the system
+% - Web frontend
+% - Backend API
+% - Database
+
+Initially, when we took over MiniTwit, it was a Python-based application built with the Flask framework. We then began replacing it with a new implementation using ASP.NET Core MVC. 
+
+This involved a full rewrite of both the frontend and backend, as well as re-implementing all core functionality.
+
+In the early stages, we used Vagrant to provision and configure DigitalOcean droplets, ensuring reproducible virtual machine setups for the database and web server. As the project matured, we transitioned fully to Docker containers because they offer a more lightweight and efficient virtualization approach, making it easier to manage deployments and integrate with CI/CD pipelines.
+
+\subsubsection{The Web Application}
+Our MiniTwit web application is built using ASP.NET Core with the Model-View-Controller (MVC) architecture, combining both frontend and backend logic. Razor Views, together with CSS, provide the UI, while the backend handles requests and data processing, and communication with the database. We use Entity Framework Core (EF Core) for object-relational mapping (ORM), allowing us to define the data model directly in C\#. This makes our database design code-first, as the database is created and managed using migrations.
+
+%\subsubsection{The Frontend}
+%For the Minitwit application, we use the ASP.NET Core with the Model-View-Controller (MVC) architecture. We chose this as this pattern as it supports a clean structure and allows us to build the app in a way that is both easily maintainable and testable. In addition to using Razor Views, we use HTML and CSS to give the application a user-friendly look and feel.
+
+%\subsubsection{The Backend}
+%Our backend, which is built on ASP.NET Core and follows the MVC architecture, is responsible for handling requests, processing of data, and connecting to the database. This allows us to separate responsibilities between our applications domain models (Models), routing and logic (Controllers), and data access (Data). We organized it so we have multiple controllers with distinct responsibilities. Additionally, the ASP.NET Core framework integrates well with Entity Framework Core, which we use for object-relational mapping as well as database access. This allows us to define our data schema in C\# classes and manage migrations directly from our application code.
+
+\subsubsection{The Database}
+We chose PostgreSQL for our database, because it is an efficient and open-source database and a popular choice in the industry. Additionally, it has a provider for EF Core called Npgsql\footnote{\url{https://www.npgsql.org/}}. The database instance runs in a Docker container on its own DigitalOcean droplet. It persists data using a Docker volume, and is exposed on port 5432 on the internal network in-between our droplets (more about that in Section \ref{sec:security}). A health check ensures readiness in case the database is unavailable, and a Watchtower container keeps the container image up-to-date.
+
+\subsection{Dependencies (across all levels)}
+% All dependencies of your ITU-MiniTwit systems on all levels of abstraction and development stages. That is, list and briefly describe all technologies and tools you applied and depend on.
+
+We generated a dependency graph with NDepend, a static analysis tool for .NET projects that helps visualize dependencies and measure quality: \href{http://67.207.72.20:8081/NDependReportFiles/ComponentDependenciesDiagram.html}{dependency-diagram}\footnote{\url{http://67.207.72.20:8081/NDependReportFiles/ComponentDependenciesDiagram.html}}.
+
+\vspace*{0.5cm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.60\textwidth]{images/MiniTwit-DependencyDiagram.png}
+    \caption{Dependency diagram of the MiniTwit system.}
+    \label{fig:minitwit-diagram}
+\end{figure}
+
+The above Figure \ref{fig:minitwit-diagram} visualizes the internal structure of the codebase by showing how the namespaces depend on each other. The architecture is organized into distinct layers: Models, Controllers, Views, Data, Core, and Migrations.
+
+Controllers handle HTTP requests and use Models to represent the business logic data. The Views layer contains the view for the user interface, which makes use of the data classes from Models to visualize the data (e.g. messages). The Data layer is responsible for data access (through the \texttt{AppDbContext} class) and contains the data model in the form of POCOs (Plain Old CLR Object). Although not explicitly shown in the diagram, communication with the database is done through EF Core.
+
+\vspace*{0.5cm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{images/MiniTwitControllers-DependencyDiagram.png}
+    \caption{Dependency diagram of the MiniTwit controllers.}
+    \label{fig:minitwit-controllers}
+\end{figure}
+
+The Controllers layer (Figure \ref{fig:minitwit-controllers}) is further divided into specific controllers based on functionality: \texttt{ApiController} handles API requests, \texttt{AuthController} manages authentication and user management, and \texttt{HomeController} serves the main web pages. This separation helps organize concerns and simplifies maintenance by clearly delineating different parts of the application interface.
+
+\subsection{Important Interactions of Subsystems}
+% Important interactions of subsystems.
+
+% - For example, via an illustrative UML Sequence diagram that shows the flow of information through your system from user request in the browser, over all subsystems, hitting the database, and a response that is returned to the user.
+% - Similarly, another illustrative sequence diagram that shows how requests from the simulator traverse your system.
+
+The system handles two key interaction flows, captured in the provided UML sequence diagrams shown below.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/user-interaction-uml.png}
+    \caption{User interaction sequence diagram.}
+    \label{fig:user-interaction}
+\end{figure}
+
+In Figure \ref{fig:user-interaction}, a user sends a request from the browser (e.g., accessing the home page or registering). This request is routed through Nginx, which forwards it to the \texttt{HomeController} or \texttt{AuthController} of the ASP.NET Core application. The controller uses the EF Core \texttt{AppDbContext} to query the PostgreSQL database. Once the database returns the result, the controller prepares the response, which is passed back through Nginx to the browser, ultimately presenting the result to the user.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/simulator-interaction-uml.png}
+    \caption{Simulator interaction sequence diagram.}
+    \label{fig:simulator-interaction}
+\end{figure}
+
+In Figure \ref{fig:simulator-interaction}, the simulator sends API requests to the system. These requests also pass through Nginx but are handled by the \texttt{ApiController}. The controller also uses \texttt{AppDbContext} to query the PostgreSQL database. The system processes the requests from the simulator and returns JSON responses.
+
+%The DbContext is the data access layer of the system, provided by the Entity Framework Core. It connects the application’s C\# models to the PostgreSQL database, translating high-level queries and operations into SQL commands. This allows controllers to manage data without handling raw SQL, ensuring maintainable code.
+
+%This flow shows the main subsystem interaction: the external simulator triggering API endpoints, the application back-end handling business logic, and the database layer executing the necessary data operations.
+
+\subsection{Current State}
+% Describe the current state of your systems, for example using results of static analysis and quality assessments.
+
+Our ASP.NET Core application is built and deployed through a CI/CD pipeline using GitHub Actions and Docker, automating building, publishing, and containerization. However, static code quality checks are currently non-existent. For future development, we could add a workflow for running compilations and tests. An overview of the deployed system can be seen in Figure \ref{fig:SystemOverview}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/SystemOverview.png}
+    \caption{Overview of the current system.}
+    \label{fig:SystemOverview}
+\end{figure}
+
+To assess the quality of the codebase, we ran a local static analysis using NDepend, which produced detailed dependency diagrams and metrics on system health. Although not integrated into the CI/CD workflow, the HTML report is hosted on the server for team review: \href{http://67.207.72.20:8081/NDependReport.html#Main}{NDependReport}.
+
+\begin{figure}[H]
+    \centering
+    % Left block: two stacked images
+    \begin{minipage}[b]{0.42\textwidth}
+        \includegraphics[width=\textwidth]{images/Technical-debt-estimation.png} \\[1ex]
+        \includegraphics[width=\textwidth]{images/Rules.png}
+    \end{minipage}
+    \hspace{0.5ex}
+    % Right block: one tall image
+    \begin{minipage}[b]{0.53\textwidth}
+        \includegraphics[width=\textwidth]{images/Issues.png}
+    \end{minipage}
+    \caption{Overview of NDepend Static Analysis Results }
+    \label{fig:code-analysis}
+\end{figure}
+
+The analysis in Figure \ref{fig:code-analysis} indicates low technical debt and overall good architectural structure, though some rule violations (Figure \ref{fig:rule-violation}) and issues were identified that warrant attention. Notably, the report lacks coverage data because we do not have any tests, which we should have prioritized.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{images/high-priority-rule-violation.png}
+    \caption{Example - high priority rule violation}
+    \label{fig:rule-violation}
+\end{figure}
+
+Integrating static analysis and test coverage into the CI/CD workflow will be an important next step to enforce quality gates and prevent regressions.
+
+\subsection{Justifications for Technology Choices}
+% MSc students should argue for the choice of technologies and decisions for at least all cases for which we asked you to do so in the tasks at the end of ultimatelyeach session.
+
+The choice of ASP.NET Core and C\# was partly motivated by the fact that one of the group members is very familiar with .NET and C\#, but also because the rest of the group wanted to learn and get familiar with the technology, as it is a popular choice within the industry.
+
+With regards to the particular choice of architecture within the application, we began exploring the use of Razor Pages. However, as we have a lot of shared functionality, e.g. different timelines that all look identical, but where the difference is that it is either scoped to a user, the logged in user (my timeline) or the public timeline, we wanted a more general solution that supported this unified view of a timeline. So, we landed on the use of traditional ASP.NET Core MVC. That way we could have one view for timelines and different controller actions in the backend for the three different kinds of timelines.
+
+We chose to use ORM from the start in the form of EF Core. The main reason for this is because EF Core is tightly integrated into the library we chose for user management called ASP.NET Core Identity\footnote{\url{https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-9.0&tabs=visual-studio}}. The library offers a superclass called \texttt{IdentityDbContext}, which already implements the database model for users, which we inherit from in our own \texttt{AppDbContext} class. Additionally, the two classes from the identity library we use for authentication, \texttt{SignInManager} and \texttt{UserManager}, make use of this database context class. So, using SQL directly from the beginning would have been an unnecessary challenge with no benefit, even though it would have been nice to have our software evolve by making the switch to an ORM throughout the development process.
+
+\section{Process Perspective}
+\subsection{CI/CD Pipeline}
+% A complete description of stages and tools included in the CI/CD chains, including deployment and release of your systems.
+
+Our ASP.NET Core web application is built and deployed using a CI/CD pipeline that integrates GitHub Actions, Docker Hub, and DigitalOcean. When code is pushed to the main branch, the workflow compiles the code, builds a Docker image of the compiled application, and pushes it to Docker Hub. In addition, two separate workflows handle compiling the project report and one that creates GitHub releases (see Figure \ref{fig:CICD-diagram}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/CI_CD.png}
+    \caption{CI/CD Pipeline}
+    \label{fig:CICD-diagram}
+\end{figure}
+
+On our DigitalOcean droplets, we use a set of Docker containers, including MiniTwit, Nginx, Grafana, Prometheus, Promtail, Loki, and Watchtower, which are launched and managed via docker-compose. Once running, Watchtower monitors for updated images and automatically deploys the latest versions of the containers specified in the compose file.
+
+We chose GitHub Actions for our CI/CD pipeline because it integrates seamlessly with our GitHub repository. Compared to alternatives like GitLab CI or Jenkins, GitHub Actions was the most accessible option for our team, allowing us to set up workflows quickly.
+
+While the CI/CD pipeline is largely automated, the initialization and configuration of the containers via docker-compose, environment variables and config files still require manual SSH access to the server. Furthermore, automated testing has not yet been fully integrated into the pipeline and remains an area for future improvement.
+
+\subsection{Monitoring}
+% How do you monitor your systems and what precisely do you monitor?
+
+We monitor our system using Prometheus and Grafana. The prometheus-net.AspNetCore package exposes application metrics at the \texttt{/metrics} endpoint, which Prometheus scrapes every 5 seconds to provide real-time insights into system behavior and performance.
+
+In \href{http://67.207.72.20:3000/d/feh7hq21y4g00a/api-endpoints?orgId=1&from=now-20d&to=now&timezone=browser}{Grafana}\footnote{\label{grafana-footnote}\url{http://67.207.72.20:3000/d/feh7hq21y4g00a/api-endpoints?orgId=1&from=now-20d&to=now&timezone=browser}} we visualize metrics like the rate of incoming HTTP requests, helping us track the volume of API calls and their return code, in order to detect anomalies such as traffic spikes or increases in 404 errors for timely issue identification. The Grafana dashboard can be accessed with password: \texttt{Q9meuDXeCMi5G2QosWiR} and username: \texttt{admin}.
+
+\subsection{Logging}
+% What do you log in your systems and how do you aggregate logs?
+
+In our Grafana dashboard, we log key HTTP request and response details, including request paths, status codes, and execution times. Additionally, we inject custom logs inside specific controller methods (e.g. in \texttt{ApiController}) to capture important actions like follow/unfollow operations, along with relevant parameters.
+
+We use Serilog to handle logging, writing logs both to the console and to local log files under \texttt{/var/log/minitwit/api/} with daily rolling. To aggregate and centralize these logs, we use Promtail to collect logs from the file system and forward them to Loki, which stores them and makes them queryable in Grafana. This setup allows us to visualize and filter logs directly within Grafana dashboards, making it easy to monitor HTTP activity, detect errors, and trace specific application events across the system.
+
+\subsection{Security}
+\label{sec:security}
+% Brief results of the security assessment and brief description of how did you harden the security of your system based on the analysis.
+
+In terms of security, we have set up a firewall that blocks any incoming traffic on ports other than SSH (22) and ports that our Docker containers are set up to expose. We have a droplet for the website and a droplet for the PostgreSQL database. The database only needs to be accessed by the web application, and thus it is unnecessary to expose it to the internet. Therefore, we opted to only have the database exposed on the internal network between our droplets, also called the Virtual Private Cloud (VPC) network. This ensures that the database container will only use the private IP in the VPC network of the droplet.
+
+Another form of security hardening we have done is to use Nginx as a reverse proxy to the web application. Although the Kestrel web server of ASP.NET Core is capable of being directly exposed to the internet, it is generally considered good practice to have a reverse proxy in front. This is because Nginx is very widely used and thus can be considered more secure to have as the public-facing application (because one can assume it is more field-tested). Furthermore, it conceals the fact that we are using ASP.NET Core, as the responses being sent out to users contain Nginx headers instead.
+
+As a final note, we did not have time to set up Transport Layer Security (TLS) or HTTPS, so all traffic going to and from clients and the web server is unencrypted. This is an issue, because if there is an adversary listening to the traffic in-between the client and the server, they will be able to record the data contained within the HTTP requests/responses, or even replace the contents to perform a Man In The Middle (MITM) attack.
+%Sensitive data such as usernames and passwords can then be stolen and the contents of messages to be posted can be altered.
+
+To secure our website, we should have set up TLS by getting a domain name and requesting a free certificate from Let’s Encrypt\footnote{\url{https://letsencrypt.org/}}. This can simply be done inside our Nginx reverse proxy, by setting it up to listen on port 443 and use the certificate. Alternatively, if we were to remove Nginx, the ASP.NET Core application can also be configured to use HTTPS.
+
+\subsection{Scaling and Upgrades}
+% Applied strategy for scaling and upgrades.
+
+We did not manage to implement horizontal scaling in our deployment. But, we planned to use an architecture using Docker Swarm, coordinating traffic across multiple instances of our application. Our design involved deploying containers for Nginx and MiniTwit, which can be replicated using Docker Swarm. The intended setup includes 2 to 3 manager nodes responsible for orchestrating the cluster, each connected to 3 worker nodes where the MiniTwit and Nginx containers would run. This approach would allow us to scale services horizontally by increasing the number of replicas of worker nodes, which would also reduce or prevent downtime.
+
+\subsection{Use of AI Assistants}
+% In case you have used AI-assistants during your project briefly explain which system(s) you used during the project and reflect how it supported or hindered your process.
+
+Throughout the development of our system, we made use of OpenAI’s ChatGPT and GitHub Copilot to support our learning and implementation. These AI tools were particularly helpful for explaining unfamiliar concepts, such as ASP.NET Core architecture, EF Core behavior, and Docker configuration. We found that LLMs were most effective when used on isolated sections of code, while they struggled with broader context. This was especially true when dealing with interactions across multiple components, such as Docker container networking. Additionally, the AI sometimes generated outdated or deprecated code examples, which required us to cross-check with official documentation.
+
+\section{Reflections}
+% Describe the biggest issues, how you solved them, and which are major lessons learned with regards to:
+% - evolution and refactoring
+% - operation, and
+% - maintenance 
+% of your ITU-MiniTwit systems. Link back to respective commit messages, issues, tickets, etc. to illustrate these.
+
+% Also reflect and describe what was the "DevOps" style of your work. For example, what did you do differently to previous development projects and how did it work?
+
+\subsection{Biggest Challenges}
+
+\subsubsection{Database Migration}
+
+Midway through the project, we migrated from SQLite to PostgreSQL. To do this, we first tried to do a database dump using \texttt{sqlite3 App.db .dump > dump.sql} and then executing the resulting SQL file into our PostgreSQL database on the Droplet using \texttt{psql minitwit\_db < dump.sql}. This did not work because there were statements in the SQL file that are not supported in PostgreSQL. So instead, we wrote some code in the main function of the web application, which would manually retrieve the data from the SQLite database using the ORM and insert it into the ORM for the PostgreSQL database. This proved to be super easy to do and worked without issue. We did a test on a local machine first to ensure it would work, to have as little downtime as possible (we only had around 5 minutes of downtime during the migration). After the migration we had to delete all the SQLite database migrations and create a new one for the PostgreSQL database.
+
+\subsubsection{Local Development - Docker Containers}
+During the implementation of Docker containers for our MiniTwit application, we gradually transitioned to using containers for local testing to ensure compatibility with monitoring tools like Prometheus and Grafana. However, we encountered frequent issues, as the main application could not start without a connected database. Much of the development happened in parallel, and one group member resolved the issue by setting up a local database and configuring the necessary environment variables. Unfortunately, this solution was initially treated as a local fix and was not immediately shared with the rest of the team, resulting in lost development time. This experience taught us the importance of clear communication and proactively sharing problems and solutions within the team.
+
+\subsubsection{Promtail Read Overload}
+Toward the end of the simulation, we noticed that part of our monitoring setup had stopped working, specifically, the Loki container was no longer running. We restarted the containers, and initially, everything appeared to function as expected. Unfortunately, shortly after, the MiniTwit application crashed, and we lost the ability to SSH into the remote server and had to restart the droplet.
+
+%Given that Loki had previously failed, we restarted all containers except Loki. Surprisingly, the server quickly became so unresponsive that we could barely type commands in the SSH terminal. We then restarted the Droplet once more and brought up the containers one by one. This helped us isolate the issue to the Promtail container.
+
+The system slowdown resembled a resource exhaustion issue. After some research, we discovered similar cases where Promtail caused performance degradation due to the absence of a read limit on log ingestion. This matched our situation, as the system had accumulated a large volume of logs over time, and Promtail was attempting to process them all at once, overloading the server in the process. This taught us the importance of setting resource limits policies to prevent monitoring tools like Promtail from overloading the system.
+
+\subsection{Reflections}
+
+Compared to previous projects, we adopted a more DevOps-oriented approach by integrating CI/CD pipelines, automated deployments, containerization, and infrastructure management with Vagrant. Our team collaborated using GitHub by creating issues, git branches, and making pull requests that required peer reviews before merging. Using GitHub issues made us think ahead and plan our development. Despite the challenges of learning ASP.NET Core and Docker, it paid off by giving us valuable insights into new technologies.
+
+%reducing manual work and speeding up development.
+
+\printbibliography[heading=none]
+\end{document}
