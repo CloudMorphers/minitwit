@@ -63,6 +63,8 @@ jobs:
           dotnet test Tests/ui-tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
 
       - name: Run API tests
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=minitwit;Username=minitwit;Password=minitwit"
         run: |
           dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
 
