@@ -53,6 +53,10 @@ jobs:
             sleep 1
           done
 
+      - name: Restore NuGet packages
+        run: |
+          dotnet restore Tests/ui-tests/MiniTwit.UI.Tests.csproj
+
       - name: Run UI tests
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
