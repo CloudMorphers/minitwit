@@ -32,7 +32,7 @@ namespace MiniTwit.UI.Tests
             var context = await _browser.NewContextAsync();
             var page = await context.NewPageAsync();
 
-            await page.GotoAsync("http://localhost:8080"); 
+            await page.GotoAsync("http://localhost:5037"); 
             var content = await page.ContentAsync();
 
             Assert.That(content, Does.Contain("MiniTwit"));  
@@ -44,7 +44,7 @@ namespace MiniTwit.UI.Tests
             var context = await _browser.NewContextAsync();
             var page = await context.NewPageAsync();
 
-            await page.GotoAsync("http://localhost:8080/login");
+            await page.GotoAsync("http://localhost:5037/login"); // <-- changed port here
             await page.WaitForTimeoutAsync(1000);
 
             await page.FillAsync("#Username", "testuser");

@@ -13,7 +13,8 @@ builder.Host.UseSerilog((context, configuration) =>
         .WriteTo.Console()
         .WriteTo.File("/var/log/minitwit/api/api.log", rollingInterval: RollingInterval.Day));
 
-var connectionString = Environment.GetEnvironmentVariable("MINITWIT_DB_CONNECTION_STRING");
+// FIX: Use configuration system for connection string
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -46,7 +47,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging(); // new
+app.UseSerilogRequestLogging();
 
 app.Use(async (context, next) =>
 {
