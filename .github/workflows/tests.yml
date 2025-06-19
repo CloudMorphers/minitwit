@@ -31,8 +31,15 @@ jobs:
 
       - name: Start WebServer
         run: |
-          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:5037" &
-          sleep 20
+          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:5037" > server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s http://localhost:5037/ > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Waiting for server..."
+            sleep 1
+          done
 
       - name: Run UI tests
         run: |
@@ -42,3 +49,7 @@ jobs:
       - name: Run API tests
         run: |
           dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
+
+      - name: Print server logs if tests fail
+        if: failure()
+        run: cat server.log
