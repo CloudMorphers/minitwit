@@ -26,7 +26,7 @@ jobs:
         run: |
           dotnet tool install --global Microsoft.Playwright.CLI
           export PATH="$PATH:$HOME/.dotnet/tools"
-          cd Tests/ui-tests
+          dotnet build Tests/ui-tests/MiniTwit.UI.Tests.csproj
           playwright install
 
       - name: Run UI tests
