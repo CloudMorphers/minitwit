@@ -31,7 +31,7 @@ jobs:
 
       - name: Start WebServer
         run: |
-          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:5037" > server.log 2>&1 &
+          dotnet run --project MiniTwit/WebServer/WebServer.csproj --urls "http://localhost:5037" > server.log 2>&1 &
           for i in {1..30}; do
             if curl -s http://localhost:5037/ > /dev/null; then
               echo "Server is up!"
