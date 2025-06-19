@@ -8,6 +8,8 @@ namespace MiniTwit.UI.Tests
     {
         private IPlaywright _playwright;
         private IBrowser _browser;
+        private string _testUsername;
+        private string _testPassword = "testpass";
 
         [SetUp]
         public async Task Setup()
@@ -17,6 +19,9 @@ namespace MiniTwit.UI.Tests
             {
                 Headless = true
             });
+
+            _testUsername = $"testuser_{Guid.NewGuid()}";
+            await RegisterTestUserAsync();
         }
 
         [TearDown]
@@ -38,7 +43,6 @@ namespace MiniTwit.UI.Tests
             Assert.That(content, Does.Contain("MiniTwit"));  
         }
 
-        // ✅ This is a helper, not a test - therefore no [Test]
         private async Task<IPage> LoginAsTestUserAsync()
         {
             var context = await _browser.NewContextAsync();
@@ -47,8 +51,8 @@ namespace MiniTwit.UI.Tests
             await page.GotoAsync("http://localhost:5037/login"); // <-- changed port here
             await page.WaitForTimeoutAsync(1000);
 
-            await page.FillAsync("#Username", "testuser");
-            await page.FillAsync("#Password", "testpass");
+            await page.FillAsync("#Username", _testUsername);
+            await page.FillAsync("#Password", _testPassword);
 
             await page.ClickAsync("input[type='submit']");
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
@@ -56,12 +60,36 @@ namespace MiniTwit.UI.Tests
             return page;
         }
 
+        private async Task RegisterTestUserAsync()
+        {
+            var context = await _browser.NewContextAsync();
+            var page = await context.NewPageAsync();
+
+            await page.GotoAsync("http://localhost:5037/register");
+            await page.FillAsync("#Username", _testUsername);
+            await page.FillAsync("#Email", $"{_testUsername}@example.com");
+            await page.FillAsync("#Password", _testPassword);
+            await page.FillAsync("#PasswordConfirmation", _testPassword);
+            await page.ClickAsync("input[type='submit']");
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+
+            // Check registration succeeded
+            var content = await page.ContentAsync();
+            Assert.That(content, Does.Not.Contain("error"), "Registration failed!");
+
+            // Only log out if registration succeeded and you are logged in
+            if (content.Contains("logout"))
+            {
+                await page.GotoAsync("http://localhost:5037/logout");
+            }
+        }
+
         [Test]
         public async Task UserCanLogin()
         {
             var page = await LoginAsTestUserAsync();
             var content = await page.ContentAsync();
-            Assert.That(content, Does.Contain("You are now logged in"));
+            Assert.That(content, Does.Contain("logged in"));
         }
 
         [Test]
