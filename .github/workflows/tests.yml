@@ -29,6 +29,11 @@ jobs:
           dotnet build Tests/ui-tests/MiniTwit.UI.Tests.csproj
           playwright install
 
+      - name: Start WebServer
+        run: |
+          dotnet run --project WebServer/WebServer.csproj --urls "http://localhost:8080" &
+          sleep 10
+
       - name: Run UI tests
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
