@@ -8,6 +8,16 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: minitwit
+          POSTGRES_PASSWORD: minitwit
+          POSTGRES_DB: minitwit
+        ports:
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +40,8 @@ jobs:
           playwright install
 
       - name: Start WebServer
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=minitwit;Username=minitwit;Password=minitwit"
         run: |
           dotnet run --project WebServer/MiniTwit.csproj --urls "http://localhost:5037" > server.log 2>&1 &
           for i in {1..30}; do
