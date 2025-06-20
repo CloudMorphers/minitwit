@@ -1,0 +1,71 @@
+name: UI and API Tests
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: minitwit
+          POSTGRES_PASSWORD: minitwit
+          POSTGRES_DB: minitwit
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Playwright tool path
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Install .NET SDK
+        run: |
+          sudo add-apt-repository ppa:dotnet/backports
+          sudo apt-get update -y
+          sudo apt-get install -y dotnet-sdk-9.0
+
+      - name: Install Playwright dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libxss1 libxcomposite1 libxrandr2 libgbm1 libgtk-3-0
+
+      - name: Install Playwright Browsers
+        run: |
+          dotnet tool install --global Microsoft.Playwright.CLI
+          dotnet build Tests/ui-tests/MiniTwit.UI.Tests.csproj
+          playwright install
+
+      - name: Start WebServer
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=minitwit;Username=minitwit;Password=minitwit"
+        run: |
+          dotnet run --project WebServer/MiniTwit.csproj --urls "http://localhost:5037" > server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -s http://localhost:5037/ > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            echo "Waiting for server..."
+            sleep 1
+          done
+
+      - name: Run UI tests
+        run: dotnet test Tests/ui-tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+
+      - name: Build API tests
+        run: dotnet build Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj
+
+      - name: Run API tests
+        env:
+          ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=minitwit;Username=minitwit;Password=minitwit"
+        run: dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
+
+      - name: Print server logs if tests fail
+        if: failure()
+        run: cat server.log

@@ -4,8 +4,7 @@ services:
     container_name: minitwit_web
     restart: always
     environment:
-      MINITWIT_DB_CONNECTION_STRING:
-        Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
+      MINITWIT_DB_CONNECTION_STRING: Host=${MINITWIT_DB_HOST};Username=${MINITWIT_DB_USER};Password=${MINITWIT_DB_PASSWORD};Database=${MINITWIT_DB_NAME}
     ports:
       - 127.0.0.1:8080:8080
     volumes:
@@ -22,8 +21,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      web:
-        condition: service_started
+      - web
 
   prometheus:
     image: prom/prometheus
@@ -46,7 +44,7 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus
-      - loki 
+      - loki
 
   loki:
     image: grafana/loki:2.8.2
@@ -62,7 +60,8 @@ services:
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/log/minitwit/api:/var/log/minitwit/api:ro
-    command: -config.file=/etc/promtail/config.yml
+    command:
+      - -config.file=/etc/promtail/config.yml
       - -max-line-size=1048576
     depends_on:
       - loki
