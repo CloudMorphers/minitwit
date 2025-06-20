@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Playwright tool path
+        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
       - name: Install .NET SDK
         run: |
           sudo add-apt-repository ppa:dotnet/backports
@@ -35,7 +38,6 @@ jobs:
       - name: Install Playwright Browsers
         run: |
           dotnet tool install --global Microsoft.Playwright.CLI
-          export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet build Tests/ui-tests/MiniTwit.UI.Tests.csproj
           playwright install
 
@@ -53,20 +55,16 @@ jobs:
             sleep 1
           done
 
-      - name: Restore NuGet packages
-        run: |
-          dotnet restore Tests/ui-tests/MiniTwit.UI.Tests.csproj
-
       - name: Run UI tests
-        run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet test Tests/ui-tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+        run: dotnet test Tests/ui-tests/MiniTwit.UI.Tests.csproj --logger "console;verbosity=detailed"
+
+      - name: Build API tests
+        run: dotnet build Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj
 
       - name: Run API tests
         env:
           ConnectionStrings__DefaultConnection: "Host=localhost;Port=5432;Database=minitwit;Username=minitwit;Password=minitwit"
-        run: |
-          dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
+        run: dotnet test Tests/api-tests/MiniTwit.API.Tests/MiniTwit.API.Tests.csproj --logger "console;verbosity=detailed"
 
       - name: Print server logs if tests fail
         if: failure()
