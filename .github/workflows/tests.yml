@@ -2,7 +2,8 @@ name: UI and API Tests
 
 on:
   push:
-    branches: ["**"]
+    branches:
+      - develop
 
 jobs:
   test:
