@@ -13,7 +13,7 @@ public class AuthApiTests
     private HttpClient _client;
     private WebApplicationFactory<Program> _factory;
 
-    // 🔧 Set up a fresh HttpClient for each test
+    //  Set up a fresh HttpClient for each test
     [SetUp]
     public void SetUp()
     {
@@ -24,7 +24,7 @@ public class AuthApiTests
         });
     }
 
-    // 🧹 Clean up after each test
+    //  Clean up after each test
     [TearDown]
     public void TearDown()
     {
@@ -32,7 +32,7 @@ public class AuthApiTests
         _factory.Dispose();
     }
 
-    // ✅ Test: Register a new user and check if they are redirected to login
+    //  Test: Register a new user and check if they are redirected to login
     [Test]
     public async Task Register_NewUser_ReturnsRedirectToLogin()
     {
@@ -61,7 +61,7 @@ public class AuthApiTests
         Assert.That(response.Headers.Location?.ToString(), Is.EqualTo("/login"));
     }
 
-    // ✅ Test: Post a message and verify it appears on the timeline
+    // Test: Post a message and verify it appears on the timeline
     [Test]
     public async Task PostMessage_AppearsInTimeline()
     {
@@ -91,7 +91,7 @@ public class AuthApiTests
         var loginResponse = await _client.PostAsync("/login", loginContent);
         Assert.That(loginResponse.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
 
-        // 🧁 Carry cookies across requests (simulate being logged in)
+        // Carry cookies across requests (simulate being logged in)
         var cookies = loginResponse.Headers.GetValues("Set-Cookie");
         _client.DefaultRequestHeaders.Remove("Cookie");
         _client.DefaultRequestHeaders.Add("Cookie", string.Join("; ", cookies));
@@ -109,12 +109,12 @@ public class AuthApiTests
 
         Assert.That(postResponse.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
 
-        // 🔍 Verify that the message shows up on the timeline
+        //  Verify that the message shows up on the timeline
         var updatedTimelineHtml = await GetPageHtml("/");
         Assert.That(updatedTimelineHtml, Does.Contain(messageText));
     }
 
-    // ✅ Test: User A follows and unfollows user B
+    // Test: User A follows and unfollows user B
     [Test]
     public async Task FollowAndUnfollowUser_WorksCorrectly()
     {
@@ -159,7 +159,7 @@ public class AuthApiTests
         var loginResponse = await _client.PostAsync("/login", loginContent);
         Assert.That(loginResponse.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
 
-        // 🍪 Set cookies to simulate logged-in session
+        //  Set cookies to simulate logged-in session
         var cookies = loginResponse.Headers.GetValues("Set-Cookie");
         _client.DefaultRequestHeaders.Remove("Cookie");
         _client.DefaultRequestHeaders.Add("Cookie", string.Join("; ", cookies));
@@ -168,7 +168,7 @@ public class AuthApiTests
         var followResponse = await _client.GetAsync($"/follow/{userB}");
         Assert.That(followResponse.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));
 
-        // ✅ Check follow status
+        //  Check follow status
         var followedHtml = await GetPageHtml($"/{userB}");
         Assert.That(followedHtml, Does.Contain("You are currently following this user"));
 
@@ -182,7 +182,7 @@ public class AuthApiTests
     }
 
     // --------------------------------------------------------
-    // 🔧 Helper method to load HTML from a specific page path
+    // Helper method to load HTML from a specific page path
     // --------------------------------------------------------
     private async Task<string> GetPageHtml(string path)
     {
@@ -192,7 +192,7 @@ public class AuthApiTests
     }
 
     // --------------------------------------------------------
-    // 🔧 Helper method to extract anti-forgery (CSRF) token from HTML
+    // Helper method to extract anti-forgery (CSRF) token from HTML
     // --------------------------------------------------------
     private string ExtractRequestVerificationToken(string html)
     {
